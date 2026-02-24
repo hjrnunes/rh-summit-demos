@@ -43,6 +43,12 @@ beautifulsoup4==4.14.3
     # via nbconvert
 bleach==6.3.0
     # via nbconvert
+boto3==1.42.55
+    # via rh-summit-demos (pyproject.toml)
+botocore==1.42.55
+    # via
+    #   boto3
+    #   s3transfer
 certifi==2026.1.4
     # via
     #   httpcore
@@ -166,6 +172,10 @@ jinja2==3.1.6
     #   sdg-hub
 jiter==0.13.0
     # via openai
+jmespath==1.1.0
+    # via
+    #   boto3
+    #   botocore
 joblib==1.5.3
     # via scikit-learn
 json5==0.13.0
@@ -366,6 +376,7 @@ pyparsing==3.3.2
 python-dateutil==2.9.0.post0
     # via
     #   arrow
+    #   botocore
     #   jupyter-client
     #   matplotlib
     #   pandas
@@ -419,6 +430,8 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
+s3transfer==0.16.0
+    # via boto3
 scikit-learn==1.8.0
     # via rh-summit-demos (pyproject.toml)
 scipy==1.17.1
@@ -522,7 +535,9 @@ tzdata==2025.3
 uri-template==1.3.0
     # via jsonschema
 urllib3==2.6.3
-    # via requests
+    # via
+    #   botocore
+    #   requests
 uvicorn==0.41.0
     # via mcp
 wcwidth==0.6.0
