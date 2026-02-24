@@ -1,4 +1,4 @@
-FROM quay.io/modh/odh-trustyai-notebook@sha256:8c5e653f6bc6a2050565cf92f397991fbec952dc05cdfea74b65b8fd3047c9d4
+FROM quay.io/modh/odh-trustyai-notebook:v3-20250827-3a59e5e
 LABEL authors="hjrnunes"
 
 USER 1001
