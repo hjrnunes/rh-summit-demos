@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>__EXPLORER_TITLE__</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .modal-body { max-height: 80vh; overflow-y: auto; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen" x-data="explorerApp()" x-cloak>
+
+  <!-- Header -->
+  <header class="bg-gray-900 text-white px-6 py-4 shadow-lg">
+    <div class="max-w-screen-xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">__EXPLORER_TITLE__</h1>
+        <p class="text-gray-400 text-sm mt-0.5">Adversarial prompt analysis toolkit</p>
+      </div>
+      <div class="text-right">
+        <span class="text-3xl font-mono font-bold text-indigo-400" x-text="filteredRecords.length"></span>
+        <span class="text-gray-400 text-sm ml-1">/ <span x-text="totalRecords"></span> records</span>
+        <div class="text-xs text-gray-500 mt-0.5">
+          <span x-text="filteredWithPrompts"></span> with prompts
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-screen-xl mx-auto flex gap-0">
+
+    <!-- Sidebar Filters -->
+    <aside class="w-64 shrink-0 bg-white border-r border-gray-200 min-h-[calc(100vh-72px)] p-4 sticky top-0 h-screen overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-800 text-sm uppercase tracking-wide">Filters</h2>
+        <button @click="clearFilters()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Clear all</button>
+      </div>
+
+      <!-- Show without prompts toggle -->
+      <label class="flex items-center gap-2 mb-5 cursor-pointer">
+        <input type="checkbox" x-model="showNullPrompts" class="rounded text-indigo-600" />
+        <span class="text-sm text-gray-700">Show records without prompts</span>
+      </label>
+
+      <div class="space-y-4">
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Policy Concept</label>
+          <select x-model="filters.policy_concept" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('policy_concept')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Demographic Group</label>
+          <select x-model="filters.demographic_group" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('demographic_group')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Expertise Level</label>
+          <select x-model="filters.expertise_level" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('expertise_level')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Region</label>
+          <select x-model="filters.region" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('region')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Language Style</label>
+          <select x-model="filters.lang_style" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('lang_style')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Exploit Stage</label>
+          <select x-model="filters.exploit_stage" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('exploit_stage')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Medium</label>
+          <select x-model="filters.medium" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('medium')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Temporal Context</label>
+          <select x-model="filters.temporal_context" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('temporal_context')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Trust Signal</label>
+          <select x-model="filters.trust_signal" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All</option>
+            <template x-for="v in uniqueValues('trust_signal')" :key="v">
+              <option :value="v" x-text="v"></option>
+            </template>
+          </select>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <template x-for="(record, idx) in filteredRecords" :key="idx">
+          <div
+            @click="openModal(record)"
+            class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+            :class="record.prompt ? '' : 'opacity-50'"
+          >
+            <!-- Policy badge only -->
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold" :class="policyColor(record.policy_concept)" x-text="record.policy_concept"></span>
+            </div>
+
+            <!-- Prompt text or placeholder -->
+            <p
+              class="text-sm text-gray-800 line-clamp-3 leading-relaxed"
+              :class="record.prompt ? '' : 'italic text-gray-400'"
+              x-text="record.prompt || 'No prompt generated'"
+            ></p>
+
+            <!-- Meta row -->
+            <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+              <span x-text="record.region"></span>
+              <span>·</span>
+              <span x-text="record.exploit_stage"></span>
+              <span>·</span>
+              <span x-text="record.demographic_group"></span>
+              <span>·</span>
+              <span x-text="record.medium"></span>
+              <span>·</span>
+              <span x-text="record.expertise_level"></span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Empty state -->
+        <div x-show="filteredRecords.length === 0" class="col-span-3 text-center py-16 text-gray-400">
+          <p class="text-lg">No records match your filters.</p>
+          <button @click="clearFilters()" class="mt-3 text-indigo-600 hover:underline text-sm">Clear filters</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div
+    x-show="modalOpen"
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+    @click.self="closeModal()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col"
+      style="max-height: 90vh;"
+      @click.stop
+    >
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between p-5 border-b border-gray-200 shrink-0">
+        <div class="flex-1 pr-4 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold" :class="policyColor(selectedRecord?.policy_concept)" x-text="selectedRecord?.policy_concept"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800" x-text="selectedRecord?.region"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-violet-100 text-violet-800" x-text="selectedRecord?.exploit_stage"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-teal-100 text-teal-800" x-text="selectedRecord?.demographic_group"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-sky-100 text-sky-800" x-text="selectedRecord?.expertise_level"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-emerald-100 text-emerald-800" x-text="selectedRecord?.medium"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-lime-100 text-lime-800" x-text="selectedRecord?.lang_style"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800" x-text="selectedRecord?.temporal_context"></span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-rose-100 text-rose-800" x-text="selectedRecord?.trust_signal"></span>
+        </div>
+        <button @click="closeModal()" class="text-gray-400 hover:text-gray-700 text-2xl leading-none font-light ml-2">&times;</button>
+      </div>
+
+      <!-- Modal Body (scrollable) -->
+      <div class="overflow-y-auto flex-1 p-5 space-y-5">
+
+        <!-- Prompt -->
+        <div>
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Prompt</h3>
+          <template x-if="selectedRecord?.prompt">
+            <p class="text-gray-900 text-base leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-4 border border-gray-200" x-text="selectedRecord?.prompt"></p>
+          </template>
+          <template x-if="!selectedRecord?.prompt">
+            <p class="italic text-gray-400 bg-gray-50 rounded-lg p-4">No prompt generated for this record.</p>
+          </template>
+        </div>
+
+        <!-- Concept Definition -->
+        <div x-show="selectedRecord?.concept_definition" class="flex gap-3 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+          <div class="text-indigo-400 text-lg leading-none shrink-0">ℹ</div>
+          <div>
+            <p class="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1" x-text="selectedRecord?.policy_concept"></p>
+            <p class="text-sm text-indigo-900 leading-relaxed" x-text="selectedRecord?.concept_definition"></p>
+          </div>
+        </div>
+
+        <!-- All dimension cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Policy Concept</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.policy_concept || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Demographic Group</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.demographic_group || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Expertise Level</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.expertise_level || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Region</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.region || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Language Style</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.lang_style || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Exploit Stage</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.exploit_stage || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Medium</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.medium || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Temporal Context</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.temporal_context || '—'"></p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs font-semibold text-gray-500 uppercase">Trust Signal</span>
+            <p class="mt-0.5 text-gray-800" x-text="selectedRecord?.trust_signal || '—'"></p>
+          </div>
+        </div>
+
+        <!-- Explanations -->
+        <div>
+          <button
+            @click="explanationsOpen = !explanationsOpen"
+            class="w-full flex items-center justify-between text-left py-2 border-b border-gray-200"
+          >
+            <h3 class="text-sm font-semibold text-gray-700">Explanations</h3>
+            <span class="text-gray-400 text-lg" x-text="explanationsOpen ? '▲' : '▼'"></span>
+          </button>
+          <div x-show="explanationsOpen" class="mt-3 space-y-2">
+            <template x-for="exp in explanationFields" :key="exp.key">
+              <div x-show="selectedRecord?.[exp.key]" class="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
+                <p class="text-xs font-semibold text-indigo-700 mb-1" x-text="exp.label"></p>
+                <p class="text-sm text-gray-800" x-text="selectedRecord?.[exp.key]"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Generation Details -->
+        <div>
+          <button
+            @click="genDetailsOpen = !genDetailsOpen"
+            class="w-full flex items-center justify-between text-left py-2 border-b border-gray-200"
+          >
+            <h3 class="text-sm font-semibold text-gray-700">Generation Details</h3>
+            <span class="text-gray-400 text-lg" x-text="genDetailsOpen ? '▲' : '▼'"></span>
+          </button>
+          <div x-show="genDetailsOpen" class="mt-3">
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-3">
+              <button
+                @click="genTab = 'prompt'"
+                class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                :class="genTab === 'prompt' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              >Prompt Messages</button>
+              <button
+                @click="genTab = 'response'"
+                class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                :class="genTab === 'response' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              >Raw Response</button>
+            </div>
+
+            <!-- Prompt Messages tab -->
+            <div x-show="genTab === 'prompt'" class="space-y-2">
+              <template x-if="selectedRecord?.generation_prompt">
+                <div>
+                  <template x-for="(msg, i) in selectedRecord.generation_prompt" :key="i">
+                    <div class="mb-2 rounded-lg overflow-hidden border border-gray-200">
+                      <div class="px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-600 uppercase" x-text="msg.role"></div>
+                      <pre class="p-3 text-xs text-gray-800 bg-gray-50 font-mono leading-relaxed" x-text="msg.content"></pre>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <template x-if="!selectedRecord?.generation_prompt">
+                <p class="text-sm text-gray-400 italic">No generation prompt available.</p>
+              </template>
+            </div>
+
+            <!-- Raw Response tab -->
+            <div x-show="genTab === 'response'">
+              <template x-if="selectedRecord?.raw_response">
+                <pre class="p-3 text-xs text-gray-800 bg-gray-50 font-mono leading-relaxed rounded-lg border border-gray-200 overflow-x-auto" x-text="prettyRawResponse(selectedRecord.raw_response)"></pre>
+              </template>
+              <template x-if="!selectedRecord?.raw_response">
+                <p class="text-sm text-gray-400 italic">No raw response available.</p>
+              </template>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+const DATA = __EXPLORER_DATA__;
+
+function explorerApp() {
+  return {
+    allRecords: DATA,
+    totalRecords: DATA.length,
+    showNullPrompts: true,
+    filters: {
+      policy_concept: '',
+      demographic_group: '',
+      expertise_level: '',
+      region: '',
+      lang_style: '',
+      exploit_stage: '',
+      medium: '',
+      temporal_context: '',
+      trust_signal: '',
+    },
+    modalOpen: false,
+    selectedRecord: null,
+    explanationsOpen: true,
+    genDetailsOpen: false,
+    genTab: 'prompt',
+
+    explanationFields: [
+      { key: 'why_prompt_targets_demographic',         label: 'Why it targets this demographic' },
+      { key: 'why_prompt_matches_expertise',           label: 'Why it matches expertise level' },
+      { key: 'why_prompt_tailored_for_region',         label: 'Why it is tailored for region' },
+      { key: 'why_prompt_has_style',                   label: 'Why it uses this language style' },
+      { key: 'why_prompt_fits_exploit_stage',          label: 'Why it fits this exploit stage' },
+      { key: 'why_prompt_contains_instruction_keyword',label: 'Why it contains an instruction keyword' },
+      { key: 'why_prompt_has_temporal_relevance',      label: 'Why it has temporal relevance' },
+      { key: 'why_prompt_exploits_trust',              label: 'Why it exploits trust' },
+    ],
+
+    get filteredRecords() {
+      return this.allRecords.filter(r => {
+        if (!this.showNullPrompts && !r.prompt) return false;
+        for (const [k, v] of Object.entries(this.filters)) {
+          if (v && r[k] !== v) return false;
+        }
+        return true;
+      });
+    },
+
+    get filteredWithPrompts() {
+      return this.filteredRecords.filter(r => r.prompt).length;
+    },
+
+    uniqueValues(field) {
+      const vals = [...new Set(this.allRecords.map(r => r[field]).filter(Boolean))];
+      return vals.sort();
+    },
+
+    clearFilters() {
+      for (const k of Object.keys(this.filters)) this.filters[k] = '';
+      this.showNullPrompts = true;
+    },
+
+    openModal(record) {
+      this.selectedRecord = record;
+      this.explanationsOpen = true;
+      this.genDetailsOpen = false;
+      this.genTab = 'prompt';
+      this.modalOpen = true;
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeModal() {
+      this.modalOpen = false;
+      this.selectedRecord = null;
+      document.body.style.overflow = '';
+    },
+
+    policyColor(concept) {
+      const map = {
+        'Illegal Activity':   'bg-red-100 text-red-800',
+        'Hate Speech':        'bg-orange-100 text-orange-800',
+        'Violence':           'bg-red-200 text-red-900',
+        'Fraud':              'bg-amber-100 text-amber-800',
+        'Misinformation':     'bg-yellow-100 text-yellow-800',
+        'Security & Malware': 'bg-purple-100 text-purple-800',
+        'Sexually Explicit':  'bg-pink-100 text-pink-800',
+        'Self Harm':          'bg-rose-100 text-rose-800',
+      };
+      return map[concept] || 'bg-gray-100 text-gray-800';
+    },
+
+    prettyRawResponse(rawResponse) {
+      const parsed = rawResponse.map(item => {
+        if (typeof item.content === 'string') {
+          try {
+            return { ...item, content: JSON.parse(item.content) };
+          } catch (e) {
+            return item;
+          }
+        }
+        return item;
+      });
+      return JSON.stringify(parsed, null, 2);
+    },
+  };
+}
+</script>
+</body>
+</html>
