@@ -7,7 +7,7 @@ name = "rh-summit-demos"
 version = "0.1.0"
 description = "Technical demos for Red Hat Summit - AI/ML and Data Science"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "jupyter>=1.0.0",
     "jupyterlab>=4.0.0",
@@ -17,6 +17,8 @@ dependencies = [
     "seaborn>=0.12.0",
     "scikit-learn>=1.3.0",
     "sdg-hub @ git+https://github.com/Red-Hat-AI-Innovation-Team/sdg_hub.git@feat/redteam-promptgen",
+    "garak @ git+https://github.com/trustyai-explainability/garak@automated-red-teaming",
+    "llama-stack-provider-trustyai-garak @ git+https://github.com/trustyai-explainability/llama-stack-provider-trustyai-garak@automated-red-teaming",
     "boto3>=1.26.0",
     "kfp>=2.0.0",
 ]
@@ -25,6 +27,11 @@ dependencies = [
 dev = [
     "ruff>=0.1.0",
     "pytest>=7.4.0",
+]
+
+[tool.uv]
+override-dependencies = [
+    "datasets>=4.0.0",
 ]
 
 [tool.hatch.metadata]
