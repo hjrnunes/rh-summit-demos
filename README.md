@@ -80,7 +80,7 @@ Run these in order to execute the full red-teaming pipeline:
 | 4 | `notebooks/04-generate-report.ipynb` | Render the Garak JSONL report into a human-readable HTML risk assessment (ART report) |
 | — | `notebooks/prompt-generation-financial.ipynb` | Domain-specific variant targeting financial fraud scenarios (South West Bank example) |
 
-## Pipeline Data Flow
+## Conceptual Flow
 
 ```
 Policy document
