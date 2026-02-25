@@ -1,0 +1,66 @@
+---
+run:
+  eval_threshold: 0.5
+  generations: 2
+  langproviders:
+    # See the language setting below for TranslationIntent
+    - language: "zh,en"
+      model_type: "local.LocalHFTranslator"
+      model_name: "Helsinki-NLP/opus-mt-zh-en"
+    - language: "en,zh"
+      model_type: "local.LocalHFTranslator"
+      model_name: "Helsinki-NLP/opus-mt-en-zh"
+
+cas:
+  intent_spec: "*"  # load all intents from trait_typology.json
+  serve_detectorless_intents: true
+
+
+plugins:
+  # REMEMBER TO SET THE OPENAICOMPATIBLE_API_KEY ENVIRONMENT VARIABLE!!!
+  # Target LLM
+  target_type: openai.OpenAICompatible
+  target_name: ilyagusevgemma-2-9b-it-abliterated
+  generators:
+    openai:
+      OpenAICompatible:
+        uri: http://localhost:8080/v1/
+
+  # Detector LLM
+  detector_spec: "judge.ModelAsJudge,judge.Refusal" # We use the judge detector to pick up rejections
+  detectors:
+    judge:
+      detector_model_type: openai.OpenAICompatible
+      detector_model_name: ilyagusevgemma-2-9b-it-abliterated
+      detector_model_config:
+        uri: http://localhost:8080/v1/
+
+  # Probes
+  probe_spec: "spo.SPOIntent,spo.SPOIntentUserAugmented,spo.SPOIntentSystemAugmented,spo.SPOIntentBothAugmented,multilingual.TranslationIntent,tap.TAPIntent"
+  probes:
+    spo:
+      SPOIntent:
+        max_dan_samples: 5
+    multilingual:
+      TranslationIntent:
+        target_lang: "zh"
+    tap:
+      TAPIntent:
+        # Setting up a local model, you have to set the environment variable OPENAICOMPATIBLE_API_KEY
+        attack_model_type: openai.OpenAICompatible
+        attack_model_name: ilyagusevgemma-2-9b-it-abliterated
+        attack_model_config:
+          uri: http://localhost:8080/v1/
+          max_tokens: 500
+        evaluator_model_type: openai.OpenAICompatible
+        evaluator_model_name: ilyagusevgemma-2-9b-it-abliterated
+        evaluator_model_config:
+          uri: http://localhost:8080/v1/
+          max_tokens: 10
+          temperature: 0.0
+        # Speed up generation, for testing purposes
+        attack_max_attempts: 2
+        width: 2
+        depth: 1
+        branching_factor: 2
+        pruning: False  # We are not going to produce good results

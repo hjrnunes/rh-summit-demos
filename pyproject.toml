@@ -38,4 +38,4 @@ override-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["demos"]
+packages = ["demos", "tools"]
