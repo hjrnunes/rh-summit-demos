@@ -21,7 +21,7 @@ uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-uv pip sync
+uv sync
 
 # Start Jupyter Lab
 jupyter lab
