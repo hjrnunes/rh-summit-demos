@@ -20,11 +20,11 @@ plugins:
   # REMEMBER TO SET THE OPENAICOMPATIBLE_API_KEY ENVIRONMENT VARIABLE!!!
   # Target LLM
   target_type: openai.OpenAICompatible
-  target_name: ilyagusevgemma-2-9b-it-abliterated
+  target_name: Phi-4
   generators:
     openai:
       OpenAICompatible:
-        uri: http://localhost:8080/v1/
+        uri: https://litellm-litemaas.apps.prod.rhoai.rh-aiservices-bu.com/v1
 
   # Detector LLM
   detector_spec: "judge.ModelAsJudge,judge.Refusal" # We use the judge detector to pick up rejections
