@@ -955,6 +955,8 @@ types-requests==2.32.4.20260107
     # via cohere
 typing-extensions==4.15.0
     # via
+    #   aiosignal
+    #   anyio
     #   avidtools
     #   beautifulsoup4
     #   cohere
@@ -973,7 +975,9 @@ typing-extensions==4.15.0
     #   opentelemetry-semantic-conventions
     #   pydantic
     #   pydantic-core
+    #   referencing
     #   replicate
+    #   starlette
     #   torch
     #   typing-inspect
     #   typing-inspection
