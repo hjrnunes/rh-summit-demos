@@ -20,18 +20,18 @@ plugins:
   # REMEMBER TO SET THE OPENAICOMPATIBLE_API_KEY ENVIRONMENT VARIABLE!!!
   # Target LLM
   target_type: openai.OpenAICompatible
-  target_name: phi-4-mini-instruct
+  target_name: qwen2.5-1.5b-instruct-mlx
   generators:
     openai:
       OpenAICompatible:
         uri: http://localhost:1234/v1
 
   # Detector LLM — MulticlassJudge with explicit defaults
-  detector_spec: "judge.MulticlassJudge,judge.Refusal"
+  detector_spec: "judge.MulticlassJudge"
   detectors:
     judge:
       detector_model_type: openai.OpenAICompatible
-      detector_model_name: gemma-2-2b-it-abliterated
+      detector_model_name: gemma-2-9b-it-abliterated@q6_k
       detector_model_config:
         uri: http://localhost:1234/v1
       MulticlassJudge:
@@ -77,12 +77,12 @@ plugins:
       TAPIntent:
         # Setting up a local model, you have to set the environment variable OPENAICOMPATIBLE_API_KEY
         attack_model_type: openai.OpenAICompatible
-        attack_model_name: gemma-2-2b-it-abliterated
+        attack_model_name: gemma-2-9b-it-abliterated@q6_k
         attack_model_config:
           uri: http://localhost:1234/v1
           max_tokens: 500
         evaluator_model_type: openai.OpenAICompatible
-        evaluator_model_name: gemma-2-2b-it-abliterated
+        evaluator_model_name: gemma-2-9b-it-abliterated@q6_k
         evaluator_model_config:
           uri: http://localhost:1234/v1
           max_tokens: 10
